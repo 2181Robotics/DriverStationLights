@@ -2,6 +2,7 @@
 
 // How many leds in your strip?
 #define NUM_LEDS 155
+#define NUM_PATTERNS 3
 
 // For led chips like WS2812, which have a data line, ground, and power, you just
 // need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
@@ -14,8 +15,10 @@
 CRGB leds[NUM_LEDS];
 
 int remainingLEDS[NUM_LEDS];
-int state = 1;
- int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
+int patterns[NUM_PATTERNS];
+int patternsDone = -1;
+int state = 11;
+ //int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
 
 
 void setup() { 
@@ -30,25 +33,26 @@ void setup() {
     for(int i = 0; i<NUM_LEDS; i++){
       remainingLEDS[i] = i;
       }
-      
+      patternSetup();
     delay(3000);
     randomToBlue();
     delay(1000);
+    state = nextPattern();
     //FastLED.clear();
     }
 
 void loop() { 
 
 //state formatting:
-// single unit (ex 1, 2, 3, 4, etc...) is intro to pattern
-// X2 is actual pattern (ex 12 is the first indexed pattern. Happens after state 1 is finished)
+// X1 is intro to pattern
+// X2 is actual pattern (ex 12 is the first indexed pattern. Happens after state 11 is finished)
 // X3 is outro from pattern (ex 13 is the first indexed pattern outro. Happens after state 12 is finished)
 // if a pattern is its own intro and outro, it should stay a single unit state
 // Goal is to use a random number generator to pick pattern order
-// Valid sequence example (state 3 starts from blue, and goes to blue in its normal pattern):
-// 1-12-13-4-42-43-3-7-72-73-10-102-103
+// Valid sequence example (state 31 starts from blue, and goes to blue in its normal pattern):
+// 11-12-13-41-42-43-31-71-72-73-101-102-103
 // all intros are from blue, all outros are to blue
-if(state == 1)
+if(state == 11)
 
 /*{
     leds[Tcorner1].b = 255;
@@ -80,9 +84,9 @@ snakeFromBlue(50);
   if(state == 13){
   snakeToBlue();
 
-  state = 2;}
+  state = nextPattern();}
 
-  if(state ==2)
+  if(state ==21)
   fadeFromBlue();
 
   if(state == 22)
@@ -91,12 +95,12 @@ snakeFromBlue(50);
 
   if(state ==23){
   fadeToBlue();
-  state = 3;}
+  state = nextPattern();}
 
-if(state == 3){
+if(state == 31){
 for(int rep = 0; rep < 3; rep++)
   fourZones();
-  state =1;
+  state = nextPattern();;
 }
   
 
@@ -338,4 +342,41 @@ void snakeToBlue(){
     FastLED.show();
     delay(10);
   }
+}
+
+void patternSetup(){
+for(int i = 0; i < NUM_PATTERNS; i++){
+  patterns[i] = i +1;
+}
+
+}
+
+int nextPattern(){
+
+  patternsDone++;
+
+  if(patternsDone == NUM_PATTERNS){
+patternsDone = 0;
+shuffle(patterns, NUM_PATTERNS);
+    
+  }
+  
+
+  return patterns[patternsDone]*10+1;
+
+}
+
+void shuffle(int *array, size_t n)
+{
+    if (n > 1) 
+    {
+        size_t i;
+        for (i = 0; i < n - 1; i++) 
+        {
+          size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+          int t = array[j];
+          array[j] = array[i];
+          array[i] = t;
+        }
+    }
 }
