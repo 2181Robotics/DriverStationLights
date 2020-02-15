@@ -1,7 +1,7 @@
 #include <FastLED.h>
 
 // How many leds in your strip?
-#define NUM_LEDS 164
+#define NUM_LEDS 155
 
 // For led chips like WS2812, which have a data line, ground, and power, you just
 // need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
@@ -15,6 +15,8 @@ CRGB leds[NUM_LEDS];
 
 int remainingLEDS[NUM_LEDS];
 int state = 1;
+ int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
+
 
 void setup() { 
  // Serial.begin(9600) ; used for debugging purposes
@@ -32,6 +34,7 @@ void setup() {
     delay(3000);
     randomToBlue();
     delay(1000);
+    //FastLED.clear();
     }
 
 void loop() { 
@@ -46,7 +49,27 @@ void loop() {
 // 1-12-13-4-42-43-3-7-72-73-10-102-103
 // all intros are from blue, all outros are to blue
 if(state == 1)
+
+/*{
+    leds[Tcorner1].b = 255;
+    leds[Tcorner1].g = 255;
+    leds[Tcorner1].r = 255;
+
+    leds[Tcorner2].b = 255;
+    leds[Tcorner2].g = 255;
+    leds[Tcorner2].r = 255;
+
+    leds[Tcorner3].b = 255;
+    leds[Tcorner3].g = 255;
+    leds[Tcorner3].r = 255;
+    
+    leds[Tcorner4].b = 255;
+    leds[Tcorner4].g = 255;
+    leds[Tcorner4].r = 255;
+    FastLED.show();
+}*/
 //fourZones();
+
 snakeFromBlue(50);
 
   if(state == 12)
@@ -84,7 +107,7 @@ for(int rep = 0; rep < 3; rep++)
 void fourZones(){
 
 
- int corner1 = 65, corner2 = 80, corner3 = 147, corner4 = 162;
+ int corner1 = 31, corner2 = 48, corner3 = 109, corner4 = 126;
 
  double shortLongRatio;
 
@@ -249,24 +272,26 @@ void fadeLights(){
 }
 
 void snakeFromBlue(int len){
-  for(int i = 0; i < NUM_LEDS; i++){
-    if(i == NUM_LEDS - len){
-      leds[i].b = 255;
-    }else{
+  for(int i = 0; i < NUM_LEDS-len; i++){
+//    if(i == NUM_LEDS - len){
+//      leds[i].b = 255;
+//    }else{
       leds[i].b = 0;
-    }
+//    }
     FastLED.show();
     delay(10);
   }
 
-    for(int i = NUM_LEDS-len+1;i<NUM_LEDS;i++){
-      for(int j = NUM_LEDS-len;j<i-1;j++){
-        leds[j].b = leds[j].b-255/len;
+   // for(int i = NUM_LEDS-1;i<NUM_LEDS;i++){
+      for(int j = NUM_LEDS-len;j<NUM_LEDS;j++){
+        leds[j].b = ((255)/(len-1))*(j-NUM_LEDS+len);
+        FastLED.show();
+        delay(10);
       }
-      leds[i].b = 255;
-      FastLED.show();
-    delay(1);
-    }
+      //leds[i].b = 255;
+     //FastLED.show();
+    //delay(10);
+   // }
   state = 12;
 }
 
