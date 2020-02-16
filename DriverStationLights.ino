@@ -142,16 +142,20 @@ void dsActive(){
       leds[i].g = 128;
       leds[i].b = 128;
       
+      
     }
     FastLED.show();
+    return;
   }else if(isAuto){
     for(int i = 0; i < NUM_LEDS; i++){
       leds[i].r = 255;
       leds[i].g = 255;
       leds[i].b = 0;
       
+      
     }
     FastLED.show();
+    return;
   }else if(isBlue){
     for(int i = 0; i < NUM_LEDS; i++){
       leds[i].r = 0;
@@ -160,6 +164,7 @@ void dsActive(){
       
     }
     FastLED.show();
+    return;
     
   }else{
     for(int i = 0; i < NUM_LEDS; i++){
@@ -169,15 +174,17 @@ void dsActive(){
       
     }
     FastLED.show();
+    return;
   
   }
   
 }
 
-void serialTest(){
+int serialTest(){
 int alliance;
 int enable;
 
+Serial.write("CheckSerial\n");
 
   if (Serial.available() > 0) {
     
@@ -216,7 +223,7 @@ if(incomingByte>=48){
     
     
 
-FastLED.clear();
+//FastLED.clear();
 if(dsData[1]){
   isBlue = 0;
 //    leds[1].r = 255;
@@ -229,13 +236,18 @@ if(dsData[1]){
 
 //    leds[2].g = 255*(dsData[2]);
     isEnabled = dsData[2];
+    
 //    leds[3].g = 255*(dsData[3]);
 //    leds[3].b = 255*(dsData[3]);
     isAuto = dsData[3];
 //    leds[4].r = 255*(dsData[4]);
     isEstopped = dsData[4];
-    FastLED.show();
+    //FastLED.show();
+
+    if(isEnabled||isEstopped)
+    dsActive();
 }
+return isEnabled;
 }
 
     
@@ -262,7 +274,10 @@ void singleChase(){
     //leds[50].b = 255;
       //leds[50].g = 255;
       //leds[50].r = 255;
+      if(isEnabled == 0 && isEstopped ==0){
       FastLED.show();
+
+      }
     }
   }
   
@@ -278,6 +293,10 @@ void fourZones(){
  shortLongRatio = (corner3-corner2)/(corner4-corner3);
 
     for(int i=0;i<corner3-corner2;i++){
+      if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     
   leds[(corner4+i)%NUM_LEDS].b = 255;
   leds[(corner4+i)%NUM_LEDS].g = 255;
@@ -294,12 +313,17 @@ void fourZones(){
   leds[((int)((corner1+i/shortLongRatio)))%NUM_LEDS].b = 255;
   leds[((int)((corner1+i/shortLongRatio)))%NUM_LEDS].g = 255;
   leds[((int)((corner1+i/shortLongRatio)))%NUM_LEDS].r = 255;
-
+if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
   delay(10);
 }
-
+    }
 for(int i=0;i<corner3-corner2;i++){
+  if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     
   leds[(corner4+i)%NUM_LEDS].b = 255;
   leds[(corner4+i)%NUM_LEDS].g = 0;
@@ -316,9 +340,11 @@ for(int i=0;i<corner3-corner2;i++){
   leds[((int)((corner1+i/shortLongRatio)))%NUM_LEDS].b = 255;
   leds[((int)((corner1+i/shortLongRatio)))%NUM_LEDS].g = 0;
   leds[((int)((corner1+i/shortLongRatio)))%NUM_LEDS].r = 0;
-
+if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
   delay(5);
+}
 }
 }
 
@@ -326,6 +352,10 @@ void fadeFromBlue(){
 //transition from full blue to every other light fading blue and white
 for(int j = 0; j<255;j++){
   for(int i = 0; i < NUM_LEDS; i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     if(i % 2==0){
   leds[i].r = j;
   leds[i].g = j;
@@ -335,10 +365,11 @@ for(int j = 0; j<255;j++){
     }
     
   
-
+}
   }
-
+if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
   delay(3);
   }
   state = 22;
@@ -348,6 +379,10 @@ void fadeToBlue(){
 //transition from every other light fading blue and white to full blue
 for(int j = 0; j<255;j++){
   for(int i = 0; i < NUM_LEDS; i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     if(leds[i].r != 0){
   leds[i].r -= 1;
   leds[i].g -= 1;
@@ -357,10 +392,11 @@ for(int j = 0; j<255;j++){
     }
     
   
-
   }
-
+  }
+if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
   delay(1);
   }
  
@@ -376,13 +412,25 @@ void randomToBlue(){
 
   leds[remainingLEDS[i]].b = 255;
   for(int k = i; k < NUM_LEDS-j-1;k++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     remainingLEDS[k] = remainingLEDS[k+1];
   }
+  }
+  if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+  }
 
   for(i=0; i<NUM_LEDS;i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     LEDCheck += leds[i]/255;
     
+  }
   }
   }
   
@@ -395,6 +443,10 @@ void fadeLights(){
 
   for(int j = 0; j<255;j++){
   for(int i = 0; i < NUM_LEDS; i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     if(i % 2){
   leds[i].r = j;
   leds[i].g = j;
@@ -409,13 +461,19 @@ void fadeLights(){
  
  
   }
-
+  }
+if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
   delay(1);
   }
 
   for(int j = 255; j>0; j--){
   for(int i = 0; i < NUM_LEDS; i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     if(i % 2){
   leds[i].r = j;
   leds[i].g = j;
@@ -428,8 +486,10 @@ void fadeLights(){
     
   
 }
-
+  }
+if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
   delay(1);
   }
   state = 23;
@@ -437,21 +497,35 @@ void fadeLights(){
 
 void snakeFromBlue(int len){
   for(int i = 0; i < NUM_LEDS-len; i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
 //    if(i == NUM_LEDS - len){
 //      leds[i].b = 255;
 //    }else{
       leds[i].b = 0;
 //    }
+if(isEnabled == 0 && isEstopped ==0){
     FastLED.show();
+}
     delay(10);
   }
+}
 
    // for(int i = NUM_LEDS-1;i<NUM_LEDS;i++){
       for(int j = NUM_LEDS-len;j<NUM_LEDS;j++){
+        if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
         leds[j].b = ((255)/(len-1))*(j-NUM_LEDS+len);
+        if(isEnabled == 0 && isEstopped ==0){
         FastLED.show();
+        }
         delay(10);
       }
+}
       //leds[i].b = 255;
      //FastLED.show();
     //delay(10);
@@ -463,16 +537,25 @@ void snake(int len){
 int blueFade = 0;
   for(int i = NUM_LEDS; i < NUM_LEDS+NUM_LEDS; i++){
     for(int light = 0; light < NUM_LEDS; light++){
+      if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
 
 leds[light].b = 0;
 leds[light].g = 0;
 leds[light].r = 0;
       
     }
+  }
 blueFade = 0;
   
 
     for(int j = 0; j < len; j++){
+      if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
 
     leds[(i-j)%NUM_LEDS].b = (255)-blueFade;
 
@@ -488,8 +571,10 @@ blueFade = 0;
 
     blueFade = ((255)/(len-1))*j;
     }
-    
+  }
+    if(isEnabled == 0 && isEstopped ==0){
     FastLED.show();
+    }
   delay(10);
     
   }
@@ -498,15 +583,27 @@ blueFade = 0;
 
 void snakeToBlue(){
   for(int i = 0; i < NUM_LEDS; i++){
+    if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
     leds[i].b = 255;
+    if(isEnabled == 0 && isEstopped ==0){
     FastLED.show();
+    }
     delay(10);
   }
+}
 }
 
 void patternSetup(){
 for(int i = 0; i < NUM_PATTERNS; i++){
+  if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
   patterns[i] = i +1;
+}
 }
 
 }
@@ -530,6 +627,10 @@ void shuffle(int *array, size_t n)
 {
     if (n > 1) 
     {
+      if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}else{
         size_t i;
         for (i = 0; i < n - 1; i++) 
         {
@@ -538,5 +639,6 @@ void shuffle(int *array, size_t n)
           array[j] = array[i];
           array[i] = t;
         }
+    }
     }
 }
