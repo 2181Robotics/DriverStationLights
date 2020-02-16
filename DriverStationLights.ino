@@ -17,15 +17,28 @@ CRGB leds[NUM_LEDS];
 int remainingLEDS[NUM_LEDS];
 int patterns[NUM_PATTERNS];
 int patternsDone = -1;
-int state = 11;
+int state = 99;
+int incomingByte;
+int pointer;
+int isBlue, isEnabled, isAuto, isEstopped, isdsDataValid = 0;
+
+int dsData[5];
  //int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
 
 
 void setup() { 
- // Serial.begin(9600) ; used for debugging purposes
+  dsData[0] = 99;
+  Serial.begin(9600) ; //used for debugging purposes
+pinMode(2, INPUT_PULLUP);
+
  
   FastLED.setBrightness( BRIGHTNESS );
-  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);  // stole this from example code
+
+  if(digitalRead(2) == LOW){
+  FastLED.addLeds<WS2812B, DATA_PIN, GBR>(leds, NUM_LEDS);  // stole this from example code
+  }else{
+    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);  // stole this from example code
+  }
     //initialize all lights off
     FastLED.clear();
 
@@ -42,7 +55,13 @@ void setup() {
     }
 
 void loop() { 
+  Serial.write("Loops \n");
+serialTest();
+if(isEnabled == 1){
 
+dsActive();
+  
+}else{
 //state formatting:
 // X1 is intro to pattern
 // X2 is actual pattern (ex 12 is the first indexed pattern. Happens after state 11 is finished)
@@ -105,8 +124,149 @@ for(int rep = 0; rep < 3; rep++)
   
 
   //snake(50);
+
+  if(state == 99){
+    //test state
+    //singleChase();
+
+//    serialTest();
+  }
+}
 }
 
+void dsActive(){
+
+  if(isEstopped){
+    for(int i = 0; i < NUM_LEDS; i++){
+      leds[i].r = 128;
+      leds[i].g = 128;
+      leds[i].b = 128;
+      
+    }
+    FastLED.show();
+  }else if(isAuto){
+    for(int i = 0; i < NUM_LEDS; i++){
+      leds[i].r = 255;
+      leds[i].g = 255;
+      leds[i].b = 0;
+      
+    }
+    FastLED.show();
+  }else if(isBlue){
+    for(int i = 0; i < NUM_LEDS; i++){
+      leds[i].r = 0;
+      leds[i].g = 0;
+      leds[i].b = 255;
+      
+    }
+    FastLED.show();
+    
+  }else{
+    for(int i = 0; i < NUM_LEDS; i++){
+      leds[i].r = 255;
+      leds[i].g = 0;
+      leds[i].b = 0;
+      
+    }
+    FastLED.show();
+  
+  }
+  
+}
+
+void serialTest(){
+int alliance;
+int enable;
+
+
+  if (Serial.available() > 0) {
+    
+    // read the incoming byte:
+    
+    char incomingByte = Serial.read();
+    
+
+if(incomingByte>=48){
+  switch(incomingByte){
+    
+  case 83:
+
+  FastLED.clear();
+    dsData[0] = 1;
+    pointer = 1;
+  break;
+  
+  case 69:
+    isdsDataValid = 1;
+    dsData[0] = 0;
+    pointer = 0;
+  break;
+  default:
+
+  dsData[pointer] = incomingByte-48;
+  pointer++;
+  break;
+  }
+}
+  }
+
+  if(dsData[0]==0){
+
+    dsData[0] = 99;
+    
+    
+
+FastLED.clear();
+if(dsData[1]){
+  isBlue = 0;
+//    leds[1].r = 255;
+//    leds[1].b = 0;
+}else{
+  isBlue = 1;
+//    leds[1].b = 255;
+//    leds[1].r = 0;
+}
+
+//    leds[2].g = 255*(dsData[2]);
+    isEnabled = dsData[2];
+//    leds[3].g = 255*(dsData[3]);
+//    leds[3].b = 255*(dsData[3]);
+    isAuto = dsData[3];
+//    leds[4].r = 255*(dsData[4]);
+    isEstopped = dsData[4];
+    FastLED.show();
+}
+}
+
+    
+  
+
+
+
+  
+
+void singleChase(){
+
+  for(int i = NUM_LEDS; i < NUM_LEDS*2; i++){
+    for(int j = NUM_LEDS; j<NUM_LEDS*2-i%NUM_LEDS; j++){
+      leds[j%NUM_LEDS].b = 255;
+      leds[j%NUM_LEDS].g = 255;
+      leds[j%NUM_LEDS].r = 255;
+
+      if((j)%NUM_LEDS){
+      leds[(j-1)%NUM_LEDS].b = 255;
+      leds[(j-1)%NUM_LEDS].g = 0;
+      leds[(j-1)%NUM_LEDS].r = 0;
+      }
+
+    //leds[50].b = 255;
+      //leds[50].g = 255;
+      //leds[50].r = 255;
+      FastLED.show();
+    }
+  }
+  
+}
 
 void fourZones(){
 
