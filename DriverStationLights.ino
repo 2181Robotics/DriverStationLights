@@ -1,8 +1,8 @@
 #include <FastLED.h>
 
 // How many leds in your strip?
-#define NUM_LEDS 155
-#define NUM_PATTERNS 3
+#define NUM_LEDS 154
+#define NUM_PATTERNS 4
 
 // For led chips like WS2812, which have a data line, ground, and power, you just
 // need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
@@ -16,7 +16,7 @@ CRGB leds[NUM_LEDS];
 
 int remainingLEDS[NUM_LEDS];
 int patterns[NUM_PATTERNS];
-int patternsDone = -1;
+int patternsDone = NUM_PATTERNS-1;
 int state = 99;
 int incomingByte;
 int pointer;
@@ -55,12 +55,12 @@ pinMode(2, INPUT_PULLUP);
     }
 
 void loop() { 
-  Serial.write("Loops ");
-  Serial.write((state-state%100)/100+48);
-  Serial.write(((state%100)-state%10)/10+48);
-  Serial.write((state%10)+48);
-  
-  Serial.write("\n");
+//  Serial.write("Loops ");
+//  Serial.write((state-state%100)/100+48);
+//  Serial.write(((state%100)-state%10)/10+48);
+//  Serial.write((state%10)+48);
+//  
+//  Serial.write("\n");
 if (Serial.available() > 0)
 serialTest();
 //if(isEnabled||isEstopped){
@@ -130,6 +130,13 @@ if(state == 31){
   fourZones();
   
 }
+if(state == 41){
+  state = nextPattern();
+
+  movieTheater();
+  
+}
+
 
 if(state == 901){
   for(int i = 0; i < NUM_LEDS/2+1; i++){
@@ -188,11 +195,102 @@ if(state == 904){
   if(state == 99){
     //test state
     //singleChase();
-
-//    serialTest();
+    movieTheater();
+    //fourZones();
   }
 }
 
+int movieTheater(){
+  //FastLED.clear();
+  int top = 1, bottom = (int)NUM_LEDS/2+1, left = (int)NUM_LEDS/4+1, right = (int)NUM_LEDS/4*3+3;
+  leds[top] =  CRGB( 128, 128, 128);
+  leds[bottom]=  CRGB( 128, 128, 128);
+  leds[left] =  CRGB( 128, 128, 128);
+  leds[right]=  CRGB( 128, 128, 128);
+  FastLED.show();
+for(int k = 0; k < 1; k++){
+  for(int i = NUM_LEDS; i < NUM_LEDS*2; i++){
+
+
+    for(int j = left-top; j > 0; j--){
+      if (Serial.available() > 0){
+      if(serialTest())
+      return;
+  }else{
+    leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
+    leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
+
+    
+    leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
+    leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
+    
+    }
+    }
+    leds[bottom].b = 128 + 127*(int)((i%11)>5);
+    leds[bottom].r = 128*(int)((i%11)<=5);
+    leds[bottom].g = 128*(int)((i%11)<=5);
+
+    leds[top].b = 128+ 127*(int)((i%11)>5);
+    leds[top].r = 128*(int)((i%11)<=5);
+    leds[top].g = 128*(int)((i%11)<=5);
+
+//    leds[80].r = 0;
+//    leds[80].g = 255;
+//    leds[80].b = 255;
+    //FastLED.show();
+    
+//    leds[top].b = 255;
+//    leds[top].r = 255;
+//    leds[top].g = 255;
+    
+
+  FastLED.show();
+    delay(100);
+  
+  }
+}
+
+  for(int i = 0; i < left-top; i++){
+
+
+    for(int j = left-top; j > 0; j--){
+      if (Serial.available() > 0){
+      if(serialTest())
+      return;
+  }else{
+    leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
+    leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
+
+    
+    leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
+    leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
+    
+    }
+    }
+    leds[bottom].b = 255;
+    leds[bottom].r = 0;
+    leds[bottom].g = 0;
+
+    leds[top].b = 255;
+    leds[top].r = 0;
+    leds[top].g = 0;
+
+//    leds[80].r = 0;
+//    leds[80].g = 255;
+//    leds[80].b = 255;
+    //FastLED.show();
+    
+//    leds[top].b = 255;
+//    leds[top].r = 255;
+//    leds[top].g = 255;
+    
+
+  FastLED.show();
+    delay(100);
+  
+  }
+
+}
 
 void dsActive(){
 
@@ -376,12 +474,12 @@ void singleChase(){
 void fourZones(){
 
 
- int corner1 = 31, corner2 = 48, corner3 = 109, corner4 = 126;
+ int corner1 = 31, corner2 = 49, corner3 = 109, corner4 = 126;
 
  double shortLongRatio;
-for(int rep = 0; rep < 3; rep++){
- shortLongRatio = (corner3-corner2)/(corner4-corner3);
 
+ shortLongRatio = (corner3-corner2)/(corner4-corner3);
+for(int rep = 0; rep < 3; rep++){
     for(int i=0;i<corner3-corner2;i++){
       if (Serial.available() > 0){
   if(serialTest())
