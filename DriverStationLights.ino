@@ -20,7 +20,7 @@ int patternsDone = -1;
 int state = 99;
 int incomingByte;
 int pointer;
-int isBlue, isEnabled, isAuto, isEstopped, isdsDataValid = 0;
+int isBlue, isEnabled, isAuto, isEstopped, lastIsEnabled, currentState = 0, isdsDataValid = 0, readingBus = 0;
 
 int dsData[5];
  //int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
@@ -34,7 +34,7 @@ pinMode(2, INPUT_PULLUP);
  
   FastLED.setBrightness( BRIGHTNESS );
 
-  if(digitalRead(2) == LOW){
+  if(0){//digitalRead(2) == LOW){
   FastLED.addLeds<WS2812B, DATA_PIN, GBR>(leds, NUM_LEDS);  // stole this from example code
   }else{
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);  // stole this from example code
@@ -55,13 +55,19 @@ pinMode(2, INPUT_PULLUP);
     }
 
 void loop() { 
-  Serial.write("Loops \n");
-serialTest();
-if(isEnabled == 1){
-
-dsActive();
+  Serial.write("Loops ");
+  Serial.write((state-state%100)/100+48);
+  Serial.write(((state%100)-state%10)/10+48);
+  Serial.write((state%10)+48);
   
-}else{
+  Serial.write("\n");
+if (Serial.available() > 0)
+serialTest();
+//if(isEnabled||isEstopped){
+////serialTest();
+//dsActive();
+//  
+//}else{
 //state formatting:
 // X1 is intro to pattern
 // X2 is actual pattern (ex 12 is the first indexed pattern. Happens after state 11 is finished)
@@ -96,30 +102,84 @@ if(state == 11)
 snakeFromBlue(50);
 
   if(state == 12)
-  for(int rep = 0; rep < 3; rep++)
+  
   snake(50);
   //fadeLights();
 
   if(state == 13){
+    state = nextPattern();
   snakeToBlue();
 
-  state = nextPattern();}
+  }
 
   if(state ==21)
   fadeFromBlue();
 
   if(state == 22)
-  for(int rep = 0; rep < 3; rep++)
+  
   fadeLights();
 
   if(state ==23){
+    state = nextPattern();
   fadeToBlue();
-  state = nextPattern();}
+  }
 
 if(state == 31){
-for(int rep = 0; rep < 3; rep++)
+  state = nextPattern();
+
   fourZones();
-  state = nextPattern();;
+  
+}
+
+if(state == 901){
+  for(int i = 0; i < NUM_LEDS/2+1; i++){
+      leds[i].r = 255;
+      leds[i].g = 0;
+      leds[i].b = 255;
+      leds[NUM_LEDS-1-i].r = 255;
+      leds[NUM_LEDS-1-i].g = 0;
+      leds[NUM_LEDS-1-i].b = 255;
+      
+      FastLED.show();
+  }
+}
+
+if(state == 902){
+  for(int i = 0; i < NUM_LEDS/2+1; i++){
+      leds[i].r = 0;
+      leds[i].g = 0;
+      leds[i].b = 255;
+      leds[NUM_LEDS-1-i].r = 0;
+      leds[NUM_LEDS-1-i].g = 0;
+      leds[NUM_LEDS-1-i].b = 255;
+      FastLED.show();
+    }
+}
+
+if(state == 903){
+  for(int i = 0; i < NUM_LEDS; i++){
+      leds[i].r = 255;
+      leds[i].g = 0;
+      leds[i].b = 0;
+
+      leds[NUM_LEDS-1-i].r = 255;
+      leds[NUM_LEDS-1-i].g = 0;
+      leds[NUM_LEDS-1-i].b = 0;
+      FastLED.show();
+    }
+}
+
+if(state == 904){
+  for(int i = 0; i < NUM_LEDS; i++){
+      leds[i].r = 128;
+      leds[i].g = 128;
+      leds[i].b = 128;
+
+      leds[NUM_LEDS-1-i].r = 128;
+      leds[NUM_LEDS-1-i].g = 128;
+      leds[NUM_LEDS-1-i].b = 128;
+      FastLED.show();
+    }
 }
   
 
@@ -132,48 +192,34 @@ for(int rep = 0; rep < 3; rep++)
 //    serialTest();
   }
 }
-}
+
 
 void dsActive(){
 
+
+
   if(isEstopped){
-    for(int i = 0; i < NUM_LEDS; i++){
-      leds[i].r = 128;
-      leds[i].g = 128;
-      leds[i].b = 128;
-      
-      
-    }
-    FastLED.show();
+    state = 904;
+    Serial.write("To E-stop");
+    currentState = 4;
     return;
   }else if(isAuto){
-    for(int i = 0; i < NUM_LEDS; i++){
-      leds[i].r = 255;
-      leds[i].g = 255;
-      leds[i].b = 0;
-      
-      
-    }
-    FastLED.show();
+    state = 901;
+    
+    currentState = 3;
+    Serial.write("To Auto");
+    
     return;
   }else if(isBlue){
-    for(int i = 0; i < NUM_LEDS; i++){
-      leds[i].r = 0;
-      leds[i].g = 0;
-      leds[i].b = 255;
-      
-    }
-    FastLED.show();
+    state = 902;
+    currentState = 2;
+    Serial.write("ToBlue");
     return;
     
-  }else{
-    for(int i = 0; i < NUM_LEDS; i++){
-      leds[i].r = 255;
-      leds[i].g = 0;
-      leds[i].b = 0;
-      
-    }
-    FastLED.show();
+  }else {
+    state = 903;
+    Serial.write("To Red");
+    currentState = 1;
     return;
   
   }
@@ -181,16 +227,23 @@ void dsActive(){
 }
 
 int serialTest(){
-int alliance;
-int enable;
+
+  
+//int alliance;
+//int enable;
 
 Serial.write("CheckSerial\n");
 
+do {
   if (Serial.available() > 0) {
     
     // read the incoming byte:
     
     char incomingByte = Serial.read();
+    readingBus = 1;
+    
+    Serial.write(incomingByte);
+    Serial.write('\n');
     
 
 if(incomingByte>=48){
@@ -198,61 +251,98 @@ if(incomingByte>=48){
     
   case 83:
 
-  FastLED.clear();
+    //FastLED.clear();
     dsData[0] = 1;
     pointer = 1;
-  break;
+    break;
   
   case 69:
     isdsDataValid = 1;
     dsData[0] = 0;
-    pointer = 0;
-  break;
-  default:
+    readingBus = 1;
+    
+    while(Serial.available() > 0) {
+      char t = Serial.read();
+    }
 
-  dsData[pointer] = incomingByte-48;
-  pointer++;
-  break;
+    if(pointer !=5){
+      
+    Serial.write('0');
+    dsData[0] = 99;
+    }
+    pointer = 0;
+    break;
+    
+  default:
+    dsData[pointer] = incomingByte-48;
+    pointer++;
+    break;
   }
 }
   }
+  delay(10);
+} while (Serial.available() > 0);
 
   if(dsData[0]==0){
 
-    dsData[0] = 99;
-    
-    
+              dsData[0] = 99;
 
-//FastLED.clear();
-if(dsData[1]){
-  isBlue = 0;
-//    leds[1].r = 255;
-//    leds[1].b = 0;
-}else{
-  isBlue = 1;
-//    leds[1].b = 255;
-//    leds[1].r = 0;
+          if(dsData[1]){
+            isBlue = 0;
+          }else{
+            isBlue = 1;
+          }
+
+              lastIsEnabled = isEnabled;
+              isEnabled = dsData[2];
+              isAuto = dsData[3];
+              isEstopped = dsData[4];
+//              Serial.write("isBlue ");
+//              Serial.write(isBlue+48);
+//              Serial.write('\n');
+//              
+//              Serial.write("isEnabled ");
+//              Serial.write(isEnabled+48);
+//              Serial.write('\n');
+//              
+//              Serial.write("isAuto ");
+//              Serial.write(isAuto+48);
+//              Serial.write('\n');
+//              
+//              Serial.write("isEstopped ");
+//              Serial.write(isEstopped+48);
+//              Serial.write('\n');
+              if(isEnabled||isEstopped)
+              dsActive();
+
+              if(isEnabled == 0 && lastIsEnabled == 1 && isEstopped == 0){
+                
+                transitionToPatterns();
+                return;
+              }
+
+              
 }
-
-//    leds[2].g = 255*(dsData[2]);
-    isEnabled = dsData[2];
-    
-//    leds[3].g = 255*(dsData[3]);
-//    leds[3].b = 255*(dsData[3]);
-    isAuto = dsData[3];
-//    leds[4].r = 255*(dsData[4]);
-    isEstopped = dsData[4];
-    //FastLED.show();
-
-    if(isEnabled||isEstopped)
-    dsActive();
-}
-return isEnabled;
+return isEnabled||isEstopped;
 }
 
     
   
+void transitionToPatterns(){
 
+for(int i = 0; i < NUM_LEDS/2+1; i++){
+      leds[i].r = 0;
+      leds[i].g = 0;
+      leds[i].b = 255;
+      leds[NUM_LEDS-1-i].r = 0;
+      leds[NUM_LEDS-1-i].g = 0;
+      leds[NUM_LEDS-1-i].b = 255;
+      FastLED.show();
+    }
+
+    state = nextPattern();
+  
+}
 
 
   
@@ -289,7 +379,7 @@ void fourZones(){
  int corner1 = 31, corner2 = 48, corner3 = 109, corner4 = 126;
 
  double shortLongRatio;
-
+for(int rep = 0; rep < 3; rep++){
  shortLongRatio = (corner3-corner2)/(corner4-corner3);
 
     for(int i=0;i<corner3-corner2;i++){
@@ -344,6 +434,7 @@ if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
 }
   delay(5);
+}
 }
 }
 }
@@ -439,8 +530,9 @@ void randomToBlue(){
 }
 
 void fadeLights(){
+  state = 23;
   //every other light is blue, otherwise white. Fades inbetween the 2 colors
-
+for(int rep = 0; rep < 3; rep++){
   for(int j = 0; j<255;j++){
   for(int i = 0; i < NUM_LEDS; i++){
     if (Serial.available() > 0){
@@ -492,7 +584,7 @@ if(isEnabled == 0 && isEstopped ==0){
 }
   delay(1);
   }
-  state = 23;
+}
 }
 
 void snakeFromBlue(int len){
@@ -535,6 +627,7 @@ if(isEnabled == 0 && isEstopped ==0){
 
 void snake(int len){
 int blueFade = 0;
+for(int rep = 0; rep < 3; rep++){
   for(int i = NUM_LEDS; i < NUM_LEDS+NUM_LEDS; i++){
     for(int light = 0; light < NUM_LEDS; light++){
       if (Serial.available() > 0){
@@ -578,6 +671,7 @@ blueFade = 0;
   delay(10);
     
   }
+}
   state = 13;
 }
 
