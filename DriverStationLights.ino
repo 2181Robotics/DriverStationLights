@@ -22,6 +22,8 @@ int incomingByte;
 int pointer;
 int isBlue, isEnabled, isAuto, isEstopped, lastIsEnabled, currentState = 0, isdsDataValid = 0, readingBus = 0;
 
+int top = 1, bottom = (int)NUM_LEDS/2+1, left = (int)NUM_LEDS/4+1, right = (int)NUM_LEDS/4*3+3;
+
 int dsData[5];
  //int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
 
@@ -50,7 +52,7 @@ pinMode(2, INPUT_PULLUP);
     delay(3000);
     randomToBlue();
     delay(1000);
-    state = nextPattern();
+    //state = nextPattern();
     //FastLED.clear();
     }
 
@@ -194,20 +196,76 @@ if(state == 904){
 
   if(state == 99){
     //test state
-    //singleChase();
-    movieTheater();
+    singleChase();
+    //movieTheater();
     //fourZones();
   }
 }
 
-int movieTheater(){
+void singleChase(){
+
+for(int i = top; i<bottom;i++){
+  for(int j = bottom; j>=i; j--){
+    leds[j] = CRGB(128,128,128);
+    if(j!=bottom){
+      leds[j+1] = CRGB(0,0,255);
+    }
+
+    leds[NUM_LEDS-j] = CRGB(0,0,255);
+    if(j!=bottom){
+      leds[NUM_LEDS-j+1] = CRGB(128,128,128);
+    }
+    FastLED.show();
+  }
+}
+//  for(int i = NUM_LEDS; i < NUM_LEDS*1.5; i++){
+//    for(int j = NUM_LEDS*1.5; j>NUM_LEDS+i%NUM_LEDS-1; j--){
+//      if (Serial.available() > 0){
+//      if(serialTest())
+//      return;
+//  }else{
+//      leds[j%NUM_LEDS].b = 128;
+//      leds[j%NUM_LEDS].g = 128;
+//      leds[j%NUM_LEDS].r = 128;
+//
+//      leds[NUM_LEDS-j%NUM_LEDS].b = 128;
+//      leds[NUM_LEDS-j%NUM_LEDS].g = 128;
+//      leds[NUM_LEDS-j%NUM_LEDS].r = 128;
+//
+//      if((j)%NUM_LEDS){
+//      leds[(j+1)%NUM_LEDS].b = 255;
+//      leds[(j+1)%NUM_LEDS].g = 0;
+//      leds[(j+1)%NUM_LEDS].r = 0;
+//
+//      leds[NUM_LEDS-(j+1)%NUM_LEDS].b = 255;
+//      leds[NUM_LEDS-(j+1)%NUM_LEDS].g = 0;
+//      leds[NUM_LEDS-(j+1)%NUM_LEDS].r = 0;
+//      }
+//
+//    //leds[50].b = 255;
+//      //leds[50].g = 255;
+//      //leds[50].r = 255;
+//      if(isEnabled == 0 && isEstopped ==0){
+//      FastLED.show();
+//
+//      }
+//    }
+//    }
+//  }
+//  
+}
+
+
+void movieTheater(){
   //FastLED.clear();
-  int top = 1, bottom = (int)NUM_LEDS/2+1, left = (int)NUM_LEDS/4+1, right = (int)NUM_LEDS/4*3+3;
-  leds[top] =  CRGB( 128, 128, 128);
-  leds[bottom]=  CRGB( 128, 128, 128);
-  leds[left] =  CRGB( 128, 128, 128);
-  leds[right]=  CRGB( 128, 128, 128);
+  
+  leds[top] =  CRGB( 255, 255, 255);
+  leds[bottom]=  CRGB( 255, 255, 255);
+  //leds[left] =  CRGB( 128, 128, 128);
+  //leds[right]=  CRGB( 128, 128, 128);
+  if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
 for(int k = 0; k < 1; k++){
   for(int i = NUM_LEDS; i < NUM_LEDS*2; i++){
 
@@ -244,7 +302,9 @@ for(int k = 0; k < 1; k++){
 //    leds[top].g = 255;
     
 
+  if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
     delay(100);
   
   }
@@ -285,7 +345,9 @@ for(int k = 0; k < 1; k++){
 //    leds[top].g = 255;
     
 
+  if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
+}
     delay(100);
   
   }
@@ -445,31 +507,6 @@ for(int i = 0; i < NUM_LEDS/2+1; i++){
 
   
 
-void singleChase(){
-
-  for(int i = NUM_LEDS; i < NUM_LEDS*2; i++){
-    for(int j = NUM_LEDS; j<NUM_LEDS*2-i%NUM_LEDS; j++){
-      leds[j%NUM_LEDS].b = 255;
-      leds[j%NUM_LEDS].g = 255;
-      leds[j%NUM_LEDS].r = 255;
-
-      if((j)%NUM_LEDS){
-      leds[(j-1)%NUM_LEDS].b = 255;
-      leds[(j-1)%NUM_LEDS].g = 0;
-      leds[(j-1)%NUM_LEDS].r = 0;
-      }
-
-    //leds[50].b = 255;
-      //leds[50].g = 255;
-      //leds[50].r = 255;
-      if(isEnabled == 0 && isEstopped ==0){
-      FastLED.show();
-
-      }
-    }
-  }
-  
-}
 
 void fourZones(){
 
