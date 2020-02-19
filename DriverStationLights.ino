@@ -2,14 +2,14 @@
 
 // How many leds in your strip?
 #define NUM_LEDS 154
-#define NUM_PATTERNS 4
+#define NUM_PATTERNS 5
 
 // For led chips like WS2812, which have a data line, ground, and power, you just
 // need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
 // ground, and power), like the LPD8806 define both DATA_PIN and CLOCK_PIN
 // Clock pin only needed for SPI based chipsets when not using hardware SPI
 #define DATA_PIN 6
-#define BRIGHTNESS 150
+#define BRIGHTNESS 125
 
 // Define the array of leds
 CRGB leds[NUM_LEDS];
@@ -52,7 +52,7 @@ pinMode(2, INPUT_PULLUP);
     delay(3000);
     randomToBlue();
     delay(1000);
-    //state = nextPattern();
+    state = nextPattern();
     //FastLED.clear();
     }
 
@@ -139,6 +139,13 @@ if(state == 41){
   
 }
 
+if(state == 51){
+  state = nextPattern();
+
+  singleChase();
+  
+}
+
 
 if(state == 901){
   for(int i = 0; i < NUM_LEDS/2+1; i++){
@@ -206,17 +213,42 @@ void singleChase(){
 
 for(int i = top; i<bottom;i++){
   for(int j = bottom; j>=i; j--){
+    if (Serial.available() > 0){
+      if(serialTest())
+      return;
+  }else{
     leds[j] = CRGB(128,128,128);
     if(j!=bottom){
       leds[j+1] = CRGB(0,0,255);
     }
 
-    leds[NUM_LEDS-j] = CRGB(0,0,255);
-    if(j!=bottom){
-      leds[NUM_LEDS-j+1] = CRGB(128,128,128);
-    }
+    leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(0,0,255);
+    //if(j!=bottom){
+      leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(128,128,128);
+    //}
     FastLED.show();
   }
+}
+}
+
+for(int i = top; i<bottom;i++){
+  for(int j = bottom; j>=i; j--){
+    if (Serial.available() > 0){
+      if(serialTest())
+      return;
+  }else{
+    leds[j] = CRGB(0,0,255);
+    if(j!=bottom){
+      leds[j+1] = CRGB(128,128,128);
+    }
+
+    leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(128,128,128);
+    //if(j!=bottom){
+      leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(0,0,255);
+    //}
+    FastLED.show();
+  }
+}
 }
 //  for(int i = NUM_LEDS; i < NUM_LEDS*1.5; i++){
 //    for(int j = NUM_LEDS*1.5; j>NUM_LEDS+i%NUM_LEDS-1; j--){
