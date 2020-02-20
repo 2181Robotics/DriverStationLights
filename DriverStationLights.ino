@@ -31,7 +31,7 @@ int dsData[5];
 void setup() { 
   dsData[0] = 99;
   Serial.begin(9600) ; //used for debugging purposes
-pinMode(2, INPUT_PULLUP);
+  pinMode(2, INPUT_PULLUP);
 
  
   FastLED.setBrightness( BRIGHTNESS );
@@ -48,341 +48,223 @@ pinMode(2, INPUT_PULLUP);
     for(int i = 0; i<NUM_LEDS; i++){
       remainingLEDS[i] = i;
       }
-      patternSetup();
+    patternSetup();
     delay(3000);
     randomToBlue();
     delay(1000);
     state = nextPattern();
-    //FastLED.clear();
+    
     }
 
 void loop() { 
-//  Serial.write("Loops ");
-//  Serial.write((state-state%100)/100+48);
-//  Serial.write(((state%100)-state%10)/10+48);
-//  Serial.write((state%10)+48);
-//  
-//  Serial.write("\n");
-if (Serial.available() > 0)
-serialTest();
-//if(isEnabled||isEstopped){
-////serialTest();
-//dsActive();
-//  
-//}else{
-//state formatting:
-// X1 is intro to pattern
-// X2 is actual pattern (ex 12 is the first indexed pattern. Happens after state 11 is finished)
-// X3 is outro from pattern (ex 13 is the first indexed pattern outro. Happens after state 12 is finished)
-// if a pattern is its own intro and outro, it should stay a single unit state
-// Goal is to use a random number generator to pick pattern order
-// Valid sequence example (state 31 starts from blue, and goes to blue in its normal pattern):
-// 11-12-13-41-42-43-31-71-72-73-101-102-103
-// all intros are from blue, all outros are to blue
-if(state == 11)
-
-/*{
-    leds[Tcorner1].b = 255;
-    leds[Tcorner1].g = 255;
-    leds[Tcorner1].r = 255;
-
-    leds[Tcorner2].b = 255;
-    leds[Tcorner2].g = 255;
-    leds[Tcorner2].r = 255;
-
-    leds[Tcorner3].b = 255;
-    leds[Tcorner3].g = 255;
-    leds[Tcorner3].r = 255;
-    
-    leds[Tcorner4].b = 255;
-    leds[Tcorner4].g = 255;
-    leds[Tcorner4].r = 255;
-    FastLED.show();
-}*/
-//fourZones();
-
-snakeFromBlue(50);
-
-  if(state == 12)
+  if (Serial.available() > 0)
+  serialTest();
   
-  snake(50);
-  //fadeLights();
-
+  if(state == 11)
+    snakeFromBlue(50);
+    
+  if(state == 12)
+    snake(50);
+    
   if(state == 13){
     state = nextPattern();
-  snakeToBlue();
-
+    snakeToBlue();
   }
 
   if(state ==21)
-  fadeFromBlue();
+    fadeFromBlue();
 
   if(state == 22)
-  
-  fadeLights();
-
+    fadeLights();
+    
   if(state ==23){
     state = nextPattern();
-  fadeToBlue();
+    fadeToBlue();
   }
 
-if(state == 31){
-  state = nextPattern();
-
-  fourZones();
-  
-}
-if(state == 41){
-  state = nextPattern();
-
-  movieTheater();
-  
-}
-
-if(state == 51){
-  state = nextPattern();
-
-  singleChase();
-  
-}
-
-
-if(state == 901){
-  for(int i = 0; i < NUM_LEDS/2+1; i++){
-      leds[i].r = 255;
-      leds[i].g = 0;
-      leds[i].b = 255;
-      leds[NUM_LEDS-1-i].r = 255;
-      leds[NUM_LEDS-1-i].g = 0;
-      leds[NUM_LEDS-1-i].b = 255;
-      
-      FastLED.show();
+  if(state == 31){
+    state = nextPattern();
+    fourZones();  
   }
-}
-
-if(state == 902){
-  for(int i = 0; i < NUM_LEDS/2+1; i++){
-      leds[i].r = 0;
-      leds[i].g = 0;
-      leds[i].b = 255;
-      leds[NUM_LEDS-1-i].r = 0;
-      leds[NUM_LEDS-1-i].g = 0;
-      leds[NUM_LEDS-1-i].b = 255;
-      FastLED.show();
-    }
-}
-
-if(state == 903){
-  for(int i = 0; i < NUM_LEDS; i++){
-      leds[i].r = 255;
-      leds[i].g = 0;
-      leds[i].b = 0;
-
-      leds[NUM_LEDS-1-i].r = 255;
-      leds[NUM_LEDS-1-i].g = 0;
-      leds[NUM_LEDS-1-i].b = 0;
-      FastLED.show();
-    }
-}
-
-if(state == 904){
-  for(int i = 0; i < NUM_LEDS; i++){
-      leds[i].r = 128;
-      leds[i].g = 128;
-      leds[i].b = 128;
-
-      leds[NUM_LEDS-1-i].r = 128;
-      leds[NUM_LEDS-1-i].g = 128;
-      leds[NUM_LEDS-1-i].b = 128;
-      FastLED.show();
-    }
-}
   
+  if(state == 41){
+    state = nextPattern();
+    movieTheater();  
+  }
+  
+  if(state == 51){
+    state = nextPattern();
+    singleChase();  
+  }
 
-  //snake(50);
+  if(state == 901){
+    //Communication from DS states autonomous mode
+    for(int i = 0; i < NUM_LEDS/2+1; i++){
+        leds[i].r = 255;
+        leds[i].g = 0;
+        leds[i].b = 255;
+        leds[NUM_LEDS-1-i].r = 255;
+        leds[NUM_LEDS-1-i].g = 0;
+        leds[NUM_LEDS-1-i].b = 255;
+        
+        FastLED.show();
+    }
+  }
 
+  if(state == 902){
+    //Communication from DS states enabeled, and on Blue Alliance
+    for(int i = 0; i < NUM_LEDS/2+1; i++){
+        leds[i].r = 0;
+        leds[i].g = 0;
+        leds[i].b = 255;
+        leds[NUM_LEDS-1-i].r = 0;
+        leds[NUM_LEDS-1-i].g = 0;
+        leds[NUM_LEDS-1-i].b = 255;
+        FastLED.show();
+      }
+  }
+  
+  if(state == 903){
+    //Communication from DS states enabeled, and on Red Alliance
+    for(int i = 0; i < NUM_LEDS; i++){
+        leds[i].r = 255;
+        leds[i].g = 0;
+        leds[i].b = 0;
+  
+        leds[NUM_LEDS-1-i].r = 255;
+        leds[NUM_LEDS-1-i].g = 0;
+        leds[NUM_LEDS-1-i].b = 0;
+        FastLED.show();
+      }
+  }
+  
+  if(state == 904){
+    //Communication from DS states disabeled, and on E-Stopped
+    for(int i = 0; i < NUM_LEDS; i++){
+        leds[i].r = 128;
+        leds[i].g = 128;
+        leds[i].b = 128;
+  
+        leds[NUM_LEDS-1-i].r = 128;
+        leds[NUM_LEDS-1-i].g = 128;
+        leds[NUM_LEDS-1-i].b = 128;
+        FastLED.show();
+      }
+  }
+  
   if(state == 99){
     //test state
     singleChase();
-    //movieTheater();
-    //fourZones();
   }
 }
 
 void singleChase(){
-
-for(int i = top; i<bottom;i++){
-  for(int j = bottom; j>=i; j--){
-    if (Serial.available() > 0){
-      if(serialTest())
-      return;
-  }else{
-    leds[j] = CRGB(128,128,128);
-    if(j!=bottom){
-      leds[j+1] = CRGB(0,0,255);
+//Actually Double chase. Starts from Blue, goes back to blue
+  for(int i = top; i<bottom;i++){
+    //Left Side
+    for(int j = bottom; j>=i; j--){
+      if (Serial.available() > 0){
+        if(serialTest())
+        return;
+      }else{
+        leds[j] = CRGB(128,128,128);
+        if(j!=bottom){
+          leds[j+1] = CRGB(0,0,255);
+        }
+        leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(0,0,255);
+        leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(128,128,128);
+        FastLED.show();
+      }
     }
-
-    leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(0,0,255);
-    //if(j!=bottom){
-      leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(128,128,128);
-    //}
-    FastLED.show();
   }
-}
-}
-
-for(int i = top; i<bottom;i++){
-  for(int j = bottom; j>=i; j--){
-    if (Serial.available() > 0){
-      if(serialTest())
-      return;
-  }else{
-    leds[j] = CRGB(0,0,255);
-    if(j!=bottom){
-      leds[j+1] = CRGB(128,128,128);
+  
+  for(int i = top; i<bottom;i++){
+    //Right side
+    for(int j = bottom; j>=i; j--){
+      if (Serial.available() > 0){
+        if(serialTest())
+        return;
+      }else{
+        leds[j] = CRGB(0,0,255);
+        if(j!=bottom){
+          leds[j+1] = CRGB(128,128,128);
+        }    
+        leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(128,128,128);
+        leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(0,0,255);
+        FastLED.show();
+      }
     }
-
-    leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(128,128,128);
-    //if(j!=bottom){
-      leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(0,0,255);
-    //}
-    FastLED.show();
   }
-}
-}
-//  for(int i = NUM_LEDS; i < NUM_LEDS*1.5; i++){
-//    for(int j = NUM_LEDS*1.5; j>NUM_LEDS+i%NUM_LEDS-1; j--){
-//      if (Serial.available() > 0){
-//      if(serialTest())
-//      return;
-//  }else{
-//      leds[j%NUM_LEDS].b = 128;
-//      leds[j%NUM_LEDS].g = 128;
-//      leds[j%NUM_LEDS].r = 128;
-//
-//      leds[NUM_LEDS-j%NUM_LEDS].b = 128;
-//      leds[NUM_LEDS-j%NUM_LEDS].g = 128;
-//      leds[NUM_LEDS-j%NUM_LEDS].r = 128;
-//
-//      if((j)%NUM_LEDS){
-//      leds[(j+1)%NUM_LEDS].b = 255;
-//      leds[(j+1)%NUM_LEDS].g = 0;
-//      leds[(j+1)%NUM_LEDS].r = 0;
-//
-//      leds[NUM_LEDS-(j+1)%NUM_LEDS].b = 255;
-//      leds[NUM_LEDS-(j+1)%NUM_LEDS].g = 0;
-//      leds[NUM_LEDS-(j+1)%NUM_LEDS].r = 0;
-//      }
-//
-//    //leds[50].b = 255;
-//      //leds[50].g = 255;
-//      //leds[50].r = 255;
-//      if(isEnabled == 0 && isEstopped ==0){
-//      FastLED.show();
-//
-//      }
-//    }
-//    }
-//  }
-//  
+
 }
 
 
 void movieTheater(){
-  //FastLED.clear();
-  
   leds[top] =  CRGB( 255, 255, 255);
   leds[bottom]=  CRGB( 255, 255, 255);
-  //leds[left] =  CRGB( 128, 128, 128);
-  //leds[right]=  CRGB( 128, 128, 128);
   if(isEnabled == 0 && isEstopped ==0){
-  FastLED.show();
-}
-for(int k = 0; k < 1; k++){
-  for(int i = NUM_LEDS; i < NUM_LEDS*2; i++){
-
-
-    for(int j = left-top; j > 0; j--){
-      if (Serial.available() > 0){
-      if(serialTest())
-      return;
-  }else{
-    leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
-    leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
-
-    
-    leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
-    leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
-    
-    }
-    }
-    leds[bottom].b = 128 + 127*(int)((i%11)>5);
-    leds[bottom].r = 128*(int)((i%11)<=5);
-    leds[bottom].g = 128*(int)((i%11)<=5);
-
-    leds[top].b = 128+ 127*(int)((i%11)>5);
-    leds[top].r = 128*(int)((i%11)<=5);
-    leds[top].g = 128*(int)((i%11)<=5);
-
-//    leds[80].r = 0;
-//    leds[80].g = 255;
-//    leds[80].b = 255;
-    //FastLED.show();
-    
-//    leds[top].b = 255;
-//    leds[top].r = 255;
-//    leds[top].g = 255;
-    
-
-  if(isEnabled == 0 && isEstopped ==0){
-  FastLED.show();
-}
-    delay(100);
-  
+    FastLED.show();
   }
-}
-
-  for(int i = 0; i < left-top; i++){
-
-
-    for(int j = left-top; j > 0; j--){
-      if (Serial.available() > 0){
-      if(serialTest())
-      return;
-  }else{
-    leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
-    leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
-
-    
-    leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
-    leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
-    
-    }
-    }
-    leds[bottom].b = 255;
-    leds[bottom].r = 0;
-    leds[bottom].g = 0;
-
-    leds[top].b = 255;
-    leds[top].r = 0;
-    leds[top].g = 0;
-
-//    leds[80].r = 0;
-//    leds[80].g = 255;
-//    leds[80].b = 255;
-    //FastLED.show();
-    
-//    leds[top].b = 255;
-//    leds[top].r = 255;
-//    leds[top].g = 255;
-    
-
-  if(isEnabled == 0 && isEstopped ==0){
-  FastLED.show();
-}
-    delay(100);
+  for(int k = 0; k < 1; k++){
+    for(int i = NUM_LEDS; i < NUM_LEDS*2; i++){
   
+  
+      for(int j = left-top; j > 0; j--){
+        if (Serial.available() > 0){
+          if(serialTest())
+          return;
+        }else{
+          leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
+          leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
+          leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
+          leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
+          }
+        }
+      leds[bottom].b = 128 + 127*(int)((i%11)>5);
+      leds[bottom].r = 128*(int)((i%11)<=5);
+      leds[bottom].g = 128*(int)((i%11)<=5);
+  
+      leds[top].b = 128+ 127*(int)((i%11)>5);
+      leds[top].r = 128*(int)((i%11)<=5);
+      leds[top].g = 128*(int)((i%11)<=5);
+      
+      if(isEnabled == 0 && isEstopped ==0){
+        FastLED.show();
+      }
+      delay(100);
+      
+      }
+    }
+  
+    for(int i = 0; i < left-top; i++){
+      for(int j = left-top; j > 0; j--){
+        if (Serial.available() > 0){
+          if(serialTest())
+            return;
+        }else{
+          leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
+          leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
+      
+          
+          leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
+          leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
+      
+        }
+      }
+      leds[bottom].b = 255;
+      leds[bottom].r = 0;
+      leds[bottom].g = 0;
+  
+      leds[top].b = 255;
+      leds[top].r = 0;
+      leds[top].g = 0;
+  
+    if(isEnabled == 0 && isEstopped ==0){
+    FastLED.show();
   }
+      delay(100);
+    
+    }
 
 }
 
@@ -392,25 +274,25 @@ void dsActive(){
 
   if(isEstopped){
     state = 904;
-    Serial.write("To E-stop");
+    //Serial.write("To E-stop");
     currentState = 4;
     return;
   }else if(isAuto){
     state = 901;
     
     currentState = 3;
-    Serial.write("To Auto");
+    //Serial.write("To Auto");
     
     return;
   }else if(isBlue){
     state = 902;
     currentState = 2;
-    Serial.write("ToBlue");
+    //Serial.write("ToBlue");
     return;
     
   }else {
     state = 903;
-    Serial.write("To Red");
+    //Serial.write("To Red");
     currentState = 1;
     return;
   
@@ -424,7 +306,7 @@ int serialTest(){
 //int alliance;
 //int enable;
 
-Serial.write("CheckSerial\n");
+//Serial.write("CheckSerial\n");
 
 do {
   if (Serial.available() > 0) {
@@ -434,8 +316,8 @@ do {
     char incomingByte = Serial.read();
     readingBus = 1;
     
-    Serial.write(incomingByte);
-    Serial.write('\n');
+    //Serial.write(incomingByte);
+    //Serial.write('\n');
     
 
 if(incomingByte>=48){
