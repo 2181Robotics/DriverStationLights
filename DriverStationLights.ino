@@ -3,7 +3,30 @@
 // How many leds in your strip?
 #define NUM_LEDS 154
 #define NUM_PATTERNS 5
-
+                        //      |      \\
+                       //       |       \\
+                      //        |        \\
+                     //         |         \\
+                    //          |          \\  
+                   //           |           \\
+                  //            |            \\
+                 //             |             \\
+                //           Highway           \\
+               //              to               \\
+              //             Worlds              \\
+             //                 |                 \\
+            //                  |                  \\
+           //                   |                   \\
+          //                    |                    \\
+         //                     |                     \\
+        //                      |                      \\
+       //                       |                       \\
+      //                        |                        \\
+     //                         |                         \\ 
+    //                          |                          \\
+   //                           |                           \\
+  //                            |                            \\
+ //                             |                             \\
 // For led chips like WS2812, which have a data line, ground, and power, you just
 // need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
 // ground, and power), like the LPD8806 define both DATA_PIN and CLOCK_PIN
@@ -22,11 +45,11 @@ int incomingByte;
 int pointer;
 int isBlue, isEnabled, isAuto, isEstopped, lastIsEnabled, currentState = 0, isdsDataValid = 0, readingBus = 0;
 
+
+//These would likely change if the lights were re-done
 int top = 1, bottom = (int)NUM_LEDS/2+1, left = (int)NUM_LEDS/4+1, right = (int)NUM_LEDS/4*3+3;
 
 int dsData[5];
- //int Tcorner1 = 31, Tcorner2 = 48, Tcorner3 = 109, Tcorner4 = 126;
-
 
 void setup() { 
   dsData[0] = 99;
@@ -36,7 +59,7 @@ void setup() {
  
   FastLED.setBrightness( BRIGHTNESS );
 
-  if(0){//digitalRead(2) == LOW){
+  if(0){
   FastLED.addLeds<WS2812B, DATA_PIN, GBR>(leds, NUM_LEDS);  // stole this from example code
   }else{
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);  // stole this from example code
@@ -302,11 +325,6 @@ void dsActive(){
 
 int serialTest(){
 
-  
-//int alliance;
-//int enable;
-
-//Serial.write("CheckSerial\n");
 
 do {
   if (Serial.available() > 0) {
@@ -316,16 +334,11 @@ do {
     char incomingByte = Serial.read();
     readingBus = 1;
     
-    //Serial.write(incomingByte);
-    //Serial.write('\n');
-    
-
 if(incomingByte>=48){
   switch(incomingByte){
     
   case 83:
 
-    //FastLED.clear();
     dsData[0] = 1;
     pointer = 1;
     break;
@@ -371,26 +384,9 @@ if(incomingByte>=48){
               isEnabled = dsData[2];
               isAuto = dsData[3];
               isEstopped = dsData[4];
-//              Serial.write("isBlue ");
-//              Serial.write(isBlue+48);
-//              Serial.write('\n');
-//              
-//              Serial.write("isEnabled ");
-//              Serial.write(isEnabled+48);
-//              Serial.write('\n');
-//              
-//              Serial.write("isAuto ");
-//              Serial.write(isAuto+48);
-//              Serial.write('\n');
-//              
-//              Serial.write("isEstopped ");
-//              Serial.write(isEstopped+48);
-//              Serial.write('\n');
               if(isEnabled||isEstopped)
               dsActive();
-
               if(isEnabled == 0 && lastIsEnabled == 1 && isEstopped == 0){
-                
                 transitionToPatterns();
                 return;
               }
