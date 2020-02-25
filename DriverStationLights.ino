@@ -3,31 +3,43 @@
 // How many leds in your strip?
 #define NUM_LEDS 154
 #define NUM_PATTERNS 5
+
+/*                         
+                         
+                         //     |     \\
                         //      |      \\
-                       //       |       \\
-                      //        |        \\
-                     //         |         \\
-                    //          |          \\  
-                   //           |           \\
-                  //            |            \\
-                 //             |             \\
-                //           Highway           \\
-               //              to               \\
-              //             Worlds              \\
-             //                 |                 \\
-            //                  |                  \\
-           //                   |                   \\
-          //                    |                    \\
-         //                     |                     \\
-        //                      |                      \\
-       //                       |                       \\
-      //                        |                        \\
-     //                         |                         \\ 
-    //                          |                          \\
-   //                           |                           \\
-  //                            |                            \\
- //                             |                             \\
-/////////////////////////////////////////////////////////////////////
+          _______  ____//_      |       \\    _______          
+|\     /|\__   __/(  ____ \|\     /||\   \\/|(  ___  )|\     /|
+| )   ( |   ) (   | (    \/| )   ( || )   ( || (   ) |( \   / )
+| (___) |   | |   | |      | (___) || | _ | || (___) | \ (_) / 
+|  ___  |   | |   | | ____ |  ___  || |( )| ||  ___  |  \   /  
+| (   ) |   | |   | | \_  )| (  |) || || || || (   ) |   ) (   
+| )   ( |___) (___| (___) || )  |( || () () || )   ( |   | |   
+|/     \|\_______/(_______)|/   | \|(_______)|/     \|   \_/   
+               //               |               \\                  
+              //    _________ __|____            \\              
+             //     \__   __/(  ___  )            \\             
+            //         ) (   | (   ) |             \\            
+           //          | |   | |   | |              \\           
+          //           | |   | |   | |               \\          
+         //            | |   | |   | |                \\         
+        //             | |   | (___) |                 \\        
+       //              )_(   (_______)                  \\       
+      //                        |                        \\      
+     //     _______  _______  _ |      ______   _______   \\     
+  |\//   /|(  ___  )(  ____ )( \      (  __  \ (  ____ \   \\    
+  | )   ( || (   ) || (    )|| (      | (  \  )| (    \/    \\   
+  | | _ | || |   | || (____)|| |      | |   ) || (_____      \\  
+  | |( )| || |   | ||     __)| |      | |   | |(_____  )      \\ 
+  | || || || |   | || (\ (   | |      | |   ) |      ) |       \\
+  | () () || (___) || ) \ \__| (____/\| (__/  )/\____) |        \\
+  (_______)(_______)|/   \__/(_______/(______/ \_______)         \\
+
+
+
+
+*/
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\\|||||
 // _____  __   _____  __    _____   _____   ___   ______             |
 /// __  \/  | |  _  |/  |  |  __ \ |  ___| / _ \  | ___ \            |
 //`' / /'`| |  \ V / `| |  | |  \/ | |__  / /_\ \ | |_/ /  ___       |
@@ -42,7 +54,7 @@
 //| | | | '__| \ \ / / _ \ '__|  `--. \ __/ _` | __| |/ _ \| '_ \    |
 //| |/ /| |  | |\ V /  __/ |    /\__/ / || (_| | |_| | (_) | | | |   |
 //|___/ |_|  |_| \_/ \___|_|    \____/ \__\__,_|\__|_|\___/|_| |_|   |
-/////////////////////////////////////////////////////////////////////|
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // For led chips like WS2812, which have a data line, ground, and power, you just
 // need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
 // ground, and power), like the LPD8806 define both DATA_PIN and CLOCK_PIN
@@ -53,6 +65,14 @@
 // Define the array of leds
 CRGB leds[NUM_LEDS];
 
+
+
+const byte numChars = 6;
+char receivedChars[numChars];
+
+boolean newData = false;
+
+
 int remainingLEDS[NUM_LEDS];
 int patterns[NUM_PATTERNS];
 int patternsDone = NUM_PATTERNS-1;
@@ -60,6 +80,8 @@ int state = 99;
 int incomingByte;
 int pointer;
 int isBlue, isEnabled, isAuto, isEstopped, lastIsEnabled, currentState = 0, isdsDataValid = 0, readingBus = 0;
+
+int isChanged = 0, redRight, estopCount = 0;
 
 
 //These would likely change if the lights were re-done
@@ -69,7 +91,10 @@ int dsData[5];
 
 void setup() { 
   dsData[0] = 99;
-  Serial.begin(9600) ; //used for debugging purposes
+  Serial.begin(2400);
+  
+  
+  //Serial.begin(9600) ; //used for debugging purposes
   pinMode(2, INPUT_PULLUP);
 
  
@@ -92,6 +117,8 @@ void setup() {
     randomToBlue();
     delay(1000);
     state = nextPattern();
+
+    Serial.print('0');
     
     }
 
@@ -139,6 +166,10 @@ void loop() {
   if(state == 901){
     //Communication from DS states autonomous mode
     for(int i = 0; i < NUM_LEDS/2+1; i++){
+       if (Serial.available() > 0){
+          if(serialTest())
+            return;
+        }
         leds[i].r = 255;
         leds[i].g = 0;
         leds[i].b = 255;
@@ -147,12 +178,17 @@ void loop() {
         leds[NUM_LEDS-1-i].b = 255;
         
         FastLED.show();
+      
     }
   }
 
   if(state == 902){
     //Communication from DS states enabeled, and on Blue Alliance
     for(int i = 0; i < NUM_LEDS/2+1; i++){
+       if (Serial.available() > 0){
+        if(serialTest())
+            return;
+        }
         leds[i].r = 0;
         leds[i].g = 0;
         leds[i].b = 255;
@@ -160,12 +196,18 @@ void loop() {
         leds[NUM_LEDS-1-i].g = 0;
         leds[NUM_LEDS-1-i].b = 255;
         FastLED.show();
-      }
+      
+    }
   }
   
   if(state == 903){
     //Communication from DS states enabeled, and on Red Alliance
     for(int i = 0; i < NUM_LEDS; i++){
+       if (Serial.available() > 0){
+          if(serialTest())
+            return;
+       }
+          
         leds[i].r = 255;
         leds[i].g = 0;
         leds[i].b = 0;
@@ -174,21 +216,77 @@ void loop() {
         leds[NUM_LEDS-1-i].g = 0;
         leds[NUM_LEDS-1-i].b = 0;
         FastLED.show();
-      }
+      
+    }
   }
   
   if(state == 904){
     //Communication from DS states disabeled, and on E-Stopped
+    if(!isChanged){
     for(int i = 0; i < NUM_LEDS; i++){
-        leds[i].r = 128;
-        leds[i].g = 128;
-        leds[i].b = 128;
+       if (Serial.available() > 0){
+          if(serialTest())
+          return;
+        }
+        leds[i%NUM_LEDS].r = (int)(i>=top && i<= bottom)*128;
+        leds[i%NUM_LEDS].g = 0;
+        leds[i%NUM_LEDS].b = 0;
   
-        leds[NUM_LEDS-1-i].r = 128;
-        leds[NUM_LEDS-1-i].g = 128;
-        leds[NUM_LEDS-1-i].b = 128;
+//        leds[(bottom+i-top)%NUM_LEDS].r = 0;
+//        leds[(bottom+i-top)%NUM_LEDS].g = 0;
+//        leds[(bottom+i-top)%NUM_LEDS].b = 0;
         FastLED.show();
-      }
+      
+    }
+    isChanged = 1;
+    }else if(redRight){
+
+      for(int i = 0; i <NUM_LEDS; i++){
+       if (Serial.available() > 0){
+          if(serialTest())
+          return;
+        }
+        leds[i%NUM_LEDS].r = (int)(i>=top && i<= bottom)*128;
+        leds[i%NUM_LEDS].g = 0;
+        leds[i%NUM_LEDS].b = 0;
+  
+//        leds[(bottom+i-top)%NUM_LEDS].r = 0;
+//        leds[(bottom+i-top)%NUM_LEDS].g = 0;
+//        leds[(bottom+i-top)%NUM_LEDS].b = 0;
+        
+      
+      
+    }
+    if(estopCount>=100){
+      redRight = 0;
+      estopCount = 0;
+    }
+    FastLED.show();
+    }else{
+
+      for(int i = 0; i <NUM_LEDS; i++){
+       if (Serial.available() > 0){
+          if(serialTest())
+          return;
+        }
+        leds[i%NUM_LEDS].r = (int)((i<top) || (i>bottom))*128;
+        leds[i%NUM_LEDS].g = 0;
+        leds[i%NUM_LEDS].b = 0;
+  
+//        leds[(bottom+i-top)%NUM_LEDS].r = 128;
+//        leds[(bottom+i-top)%NUM_LEDS].g = 0;
+//        leds[(bottom+i-top)%NUM_LEDS].b = 0;
+        
+      
+      
+    }
+    if(estopCount>=100){
+      redRight = 1;
+      estopCount = 0;
+    }
+    FastLED.show();
+    }
+    estopCount++;
   }
   
   if(state == 99){
@@ -205,7 +303,7 @@ void singleChase(){
       if (Serial.available() > 0){
         if(serialTest())
         return;
-      }else{
+      }
         leds[j] = CRGB(128,128,128);
         if(j!=bottom){
           leds[j+1] = CRGB(0,0,255);
@@ -213,7 +311,7 @@ void singleChase(){
         leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(0,0,255);
         leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(128,128,128);
         FastLED.show();
-      }
+      
     }
   }
   
@@ -223,7 +321,7 @@ void singleChase(){
       if (Serial.available() > 0){
         if(serialTest())
         return;
-      }else{
+      }
         leds[j] = CRGB(0,0,255);
         if(j!=bottom){
           leds[j+1] = CRGB(128,128,128);
@@ -231,7 +329,7 @@ void singleChase(){
         leds[(NUM_LEDS+top-(1+j))%NUM_LEDS] = CRGB(128,128,128);
         leds[(NUM_LEDS-j+1)%NUM_LEDS] = CRGB(0,0,255);
         FastLED.show();
-      }
+      
     }
   }
 
@@ -252,12 +350,12 @@ void movieTheater(){
         if (Serial.available() > 0){
           if(serialTest())
           return;
-        }else{
+        }
           leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
           leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
           leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
           leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
-          }
+          
         }
       leds[bottom].b = 128 + 127*(int)((i%11)>5);
       leds[bottom].r = 128*(int)((i%11)<=5);
@@ -280,7 +378,7 @@ void movieTheater(){
         if (Serial.available() > 0){
           if(serialTest())
             return;
-        }else{
+        }
           leds[(NUM_LEDS+bottom+j)%NUM_LEDS] = leds[(NUM_LEDS+bottom+j-1)%NUM_LEDS];
           leds[(NUM_LEDS+bottom-j)%NUM_LEDS] = leds[(NUM_LEDS+bottom-j+1)%NUM_LEDS];
       
@@ -288,7 +386,7 @@ void movieTheater(){
           leds[(NUM_LEDS+top+j)%NUM_LEDS] = leds[(NUM_LEDS+top+j-1)%NUM_LEDS];
           leds[(NUM_LEDS+top-j)%NUM_LEDS] = leds[(NUM_LEDS+top-j+1)%NUM_LEDS];
       
-        }
+        
       }
       leds[bottom].b = 255;
       leds[bottom].r = 0;
@@ -329,94 +427,110 @@ void dsActive(){
     //Serial.write("ToBlue");
     return;
     
-  }else {
+  }else if(isEnabled) {
     state = 903;
     //Serial.write("To Red");
     currentState = 1;
     return;
   
+  }else{
+    state = nextPattern();
   }
   
+}
+
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = 'S';
+    char endMarker = 'E';
+    char rc;
+ 
+ // if (Serial.available() > 0) {
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                newData = true;
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+}
+
+void showNewData() {
+    if (newData == true) {
+//        Serial.print("This just in ... ");
+//        Serial.println(receivedChars);
+      if(receivedChars[3] == 'j')
+      Serial.write('0');
+        newData = false;
+    }
 }
 
 int serialTest(){
 
+receivedChars[3] = 'j';
+recvWithStartEndMarkers();
+    showNewData();
+if(receivedChars[3] == 'j' ){
+  //Serial.println(receivedChars);
+  //newData = false;
 
-do {
-  if (Serial.available() > 0) {
-    
-    // read the incoming byte:
-    
-    char incomingByte = Serial.read();
-    readingBus = 1;
-    
-if(incomingByte>=48){
-  switch(incomingByte){
-    
-  case 83:
+return 0;
 
-    dsData[0] = 1;
-    pointer = 1;
-    break;
-  
-  case 69:
-    isdsDataValid = 1;
-    dsData[0] = 0;
-    readingBus = 1;
-    
-    while(Serial.available() > 0) {
-      char t = Serial.read();
-    }
-
-    if(pointer !=5){
-      
-    Serial.write('0');
-    dsData[0] = 99;
-    }
-    pointer = 0;
-    break;
-    
-  default:
-    dsData[pointer] = incomingByte-48;
-    pointer++;
-    break;
-  }
 }
-  }
-  delay(10);
-} while (Serial.available() > 0);
-
-  if(dsData[0]==0){
-
-              dsData[0] = 99;
-
-          if(dsData[1]){
+//
+//for(int i = 0;i < 4;i++){
+//Serial.println(receivedChars[i]);
+//  
+//}
+ 
+    if(receivedChars[0]-'0'){
             isBlue = 0;
           }else{
             isBlue = 1;
           }
 
-              lastIsEnabled = isEnabled;
-              isEnabled = dsData[2];
-              isAuto = dsData[3];
-              isEstopped = dsData[4];
+              lastIsEnabled = isEnabled || isEstopped;
+              isEnabled = receivedChars[1]-'0';
+              isAuto = receivedChars[2]-'0';
+              isEstopped = receivedChars[3]-'0';
               if(isEnabled||isEstopped)
               dsActive();
+              
               if(isEnabled == 0 && lastIsEnabled == 1 && isEstopped == 0){
                 transitionToPatterns();
-                return;
+                //Serial.println("Transition to Blue");
+                return 1;
               }
 
-              
-}
-return isEnabled||isEstopped;
+              return isEnabled||isEstopped;
 }
 
     
   
 void transitionToPatterns(){
-
-for(int i = 0; i < NUM_LEDS/2+1; i++){
+state = nextPattern();
+for(int i = 0; i < NUM_LEDS; i++){
+  if (Serial.available() > 0){
+  if(serialTest())
+  return;
+}
       leds[i].r = 0;
       leds[i].g = 0;
       leds[i].b = 255;
@@ -426,7 +540,7 @@ for(int i = 0; i < NUM_LEDS/2+1; i++){
       FastLED.show();
     }
 
-    state = nextPattern();
+    
   
 }
 
@@ -447,7 +561,7 @@ for(int rep = 0; rep < 3; rep++){
       if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     
   leds[(corner4+i)%NUM_LEDS].b = 255;
   leds[(corner4+i)%NUM_LEDS].g = 255;
@@ -468,13 +582,13 @@ if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
 }
   delay(10);
-}
+
     }
 for(int i=0;i<corner3-corner2;i++){
   if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     
   leds[(corner4+i)%NUM_LEDS].b = 255;
   leds[(corner4+i)%NUM_LEDS].g = 0;
@@ -495,7 +609,7 @@ if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
 }
   delay(5);
-}
+
 }
 }
 }
@@ -507,7 +621,7 @@ for(int j = 0; j<255;j++){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     if(i % 2==0){
   leds[i].r = j;
   leds[i].g = j;
@@ -517,7 +631,7 @@ for(int j = 0; j<255;j++){
     }
     
   
-}
+
   }
 if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
@@ -534,7 +648,7 @@ for(int j = 0; j<255;j++){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     if(leds[i].r != 0){
   leds[i].r -= 1;
   leds[i].g -= 1;
@@ -544,7 +658,7 @@ for(int j = 0; j<255;j++){
     }
     
   
-  }
+  
   }
 if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
@@ -567,9 +681,9 @@ void randomToBlue(){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     remainingLEDS[k] = remainingLEDS[k+1];
-  }
+  
   }
   if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
@@ -579,10 +693,10 @@ void randomToBlue(){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     LEDCheck += leds[i]/255;
     
-  }
+  
   }
   }
   
@@ -599,7 +713,7 @@ for(int rep = 0; rep < 3; rep++){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     if(i % 2){
   leds[i].r = j;
   leds[i].g = j;
@@ -613,7 +727,7 @@ for(int rep = 0; rep < 3; rep++){
   
  
  
-  }
+  
   }
 if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
@@ -626,7 +740,7 @@ if(isEnabled == 0 && isEstopped ==0){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
     if(i % 2){
   leds[i].r = j;
   leds[i].g = j;
@@ -638,7 +752,7 @@ if(isEnabled == 0 && isEstopped ==0){
     }
     
   
-}
+
   }
 if(isEnabled == 0 && isEstopped ==0){
   FastLED.show();
@@ -653,7 +767,7 @@ void snakeFromBlue(int len){
     if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
 //    if(i == NUM_LEDS - len){
 //      leds[i].b = 255;
 //    }else{
@@ -663,7 +777,7 @@ if(isEnabled == 0 && isEstopped ==0){
     FastLED.show();
 }
     delay(10);
-  }
+  
 }
 
    // for(int i = NUM_LEDS-1;i<NUM_LEDS;i++){
@@ -671,13 +785,13 @@ if(isEnabled == 0 && isEstopped ==0){
         if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
         leds[j].b = ((255)/(len-1))*(j-NUM_LEDS+len);
         if(isEnabled == 0 && isEstopped ==0){
         FastLED.show();
         }
         delay(10);
-      }
+      
 }
       //leds[i].b = 255;
      //FastLED.show();
@@ -694,13 +808,13 @@ for(int rep = 0; rep < 3; rep++){
       if (Serial.available() > 0){
   if(serialTest())
   return;
-}else{
+}
 
 leds[light].b = 0;
 leds[light].g = 0;
 leds[light].r = 0;
       
-    }
+    
   }
 blueFade = 0;
   
